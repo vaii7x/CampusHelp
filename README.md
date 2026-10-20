@@ -1,513 +1,453 @@
-# CampusHelp 🎓
+# CampusHelp — Campus Parcel Pickup Coordination System
 
-### Student Availability and Campus Parcel Pickup Management System
+CampusHelp is a student-focused application designed to simplify parcel pickup coordination within a university campus. It allows students to post pickup requests and coordinate with fellow students who may have free time between laboratory sessions.
 
-CampusHelp is a Python and MySQL-based application that helps students coordinate campus parcel pickups based on their laboratory schedules. It calculates students' free intervals and helps assign pickup tasks to students who have enough available time.
+The project combines a Python backend, a MySQL relational database, and a Flask-based web interface to provide a centralized platform for student coordination.
+
+**Repository:** https://github.com/vaii7x/CampusHelp
 
 ---
 
 ## Table of Contents
 
-1. [Overview](#1-overview)
-2. [Problem Statement](#2-problem-statement)
-3. [Objectives](#3-objectives)
-4. [Features](#4-features)
-5. [Technology Stack](#5-technology-stack)
-6. [System Workflow](#6-system-workflow)
-7. [Database Design](#7-database-design)
-8. [Database Tables](#8-database-tables)
-9. [Installation and Setup](#9-installation-and-setup)
-10. [Running the Application](#10-running-the-application)
-11. [Example Scenario](#11-example-scenario)
-12. [Future Enhancements](#12-future-enhancements)
-13. [Project Structure](#13-project-structure)
-14. [Author](#14-author)
+- [Problem Statement](#problem-statement)
+- [Objectives](#objectives)
+- [Key Features](#key-features)
+- [Technology Stack](#technology-stack)
+- [System Architecture](#system-architecture)
+- [System Workflow](#system-workflow)
+- [Scheduling and Availability Rules](#scheduling-and-availability-rules)
+- [Database Design](#database-design)
+- [Database Normalization](#database-normalization)
+- [User Interface](#user-interface)
+- [Project Structure](#project-structure)
+- [Installation and Setup](#installation-and-setup)
+- [Running the Application](#running-the-application)
+- [Testing](#testing)
+- [Limitations](#limitations)
+- [Future Enhancements](#future-enhancements)
+- [Conclusion](#conclusion)
 
----
+## Problem Statement
 
-## 1. Overview
+Students may be unable to collect parcels from campus reception points because of laboratory sessions, academic commitments, and conflicting schedules. Informal coordination can make it difficult to identify another student who is available to help.
 
-CampusHelp is designed to make campus parcel collection easier by connecting students who need pickups with students who have suitable free time.
+CampusHelp addresses this problem by providing a centralized system for creating pickup tasks, recording student requests, managing laboratory schedules, and organizing task assignments.
 
-The application stores student information, laboratory timetables, pickup requests, and task assignments in a relational MySQL database. Python handles the application logic, including availability calculations and task management.
+## Objectives
 
-The current prototype uses a command-line interface and focuses on laboratory schedules.
+- Provide a centralized platform for parcel pickup coordination.
+- Maintain student information in a relational database.
+- Allow students to record laboratory schedules.
+- Identify potential free intervals based on defined scheduling rules.
+- Support the creation and viewing of parcel pickup tasks.
+- Record pickup requests and assignments.
+- Provide a user-friendly web interface for accessing application features.
+- Maintain data consistency through relational database design.
 
-## 2. Problem Statement
+## Key Features
 
-Students may be unable to collect parcels from campus pickup points because of laboratory sessions or other academic commitments. Meanwhile, other students may have free time but no convenient way to coordinate pickups.
+### Student Management
+- Student registration and login.
+- Student profile management.
+- Storage of student details in MySQL.
+- Password hashing and verification.
 
-CampusHelp addresses this problem by calculating free intervals from student laboratory schedules and identifying students who can complete a pickup within the required time.
+### Timetable Management
+- Entry of laboratory sessions.
+- Storage of day, subject, start time, and end time.
+- Retrieval of saved laboratory schedules.
+- Support for timetable-based availability calculations.
 
-## 3. Objectives
+### Parcel Task Management
+- Creation of parcel pickup tasks.
+- Viewing open tasks.
+- Submission of pickup requests.
+- Tracking of tasks created by a student.
+- Storage of task and request information.
 
-- Store student information using college registration numbers.
-- Maintain student timetables and laboratory sessions.
-- Calculate free intervals within the 8:00 AM–1:00 PM pickup window.
-- Identify intervals that can accommodate a 15-minute pickup.
-- Create and manage parcel pickup requests.
-- Assign tasks to eligible students.
-- Track task and assignment statuses.
-- Demonstrate relational database design using primary keys, foreign keys, constraints, and indexes.
+### Availability Calculation
+- Defined pickup window from 8:00 AM to 1:00 PM.
+- Minimum continuous pickup duration of 15 minutes.
+- Treatment of gaps of 10 minutes or less between consecutive labs as unavailable.
+- Identification of qualifying free intervals from laboratory schedules.
 
-## 4. Features
+### Web Interface
+- Landing page.
+- Login and registration pages.
+- Student dashboard.
+- Timetable management page.
+- Parcel tasks page.
+- Student profile page.
 
-- **Student management:** Stores registration details and account information.
-- **Timetable management:** Records individual laboratory sessions.
-- **Free-interval calculation:** Finds gaps between labs within the pickup window.
-- **Pickup requests:** Stores pickup dates, locations, and descriptions.
-- **Eligibility checking:** Identifies students with at least 15 continuous minutes free.
-- **Task assignment:** Assigns pickup tasks to eligible students.
-- **Assignment tracking:** Displays tasks assigned to a particular student.
-- **Relational database:** Uses MySQL to persist application data.
+*Feature note: The availability rules describe the project's intended scheduling logic. Automatic eligibility filtering and assignment through the web interface should be considered implemented only after integration and testing.*
 
-### Availability rules
-
-- The pickup window is 8:00 AM to 1:00 PM.
-- A pickup requires at least 15 continuous minutes.
-- Gaps of 10 minutes or less between consecutive labs are treated as unavailable.
-- Sunday is treated as a day without classes.
-- Only laboratory sessions are considered in the current prototype.
-- Availability is calculated for the selected pickup date.
-
-## 5. Technology Stack
+## Technology Stack
 
 | Technology | Purpose |
 |---|---|
-| Python | Application logic and command-line interface |
+| Python | Application logic and backend functionality |
+| Flask | Web routes, requests, sessions, and page rendering |
+| HTML | Web page structure |
+| CSS | Styling and responsive layouts |
+| JavaScript | Client-side interactions |
 | MySQL | Relational database |
-| MySQL Connector/Python | Connects Python to MySQL |
-| VS Code | Development environment |
-| Git | Version control |
-| GitHub | Source code hosting |
+| MySQL Connector/Python | Database connectivity |
+| Werkzeug | Password hashing and verification |
+| Python `hashlib` | Verification of the existing CLI's PBKDF2 password format |
+| `python-dotenv` | Loading local environment variables |
+| Visual Studio Code | Development environment |
+| Git and GitHub | Version control and source-code hosting |
 
-## 6. System Workflow
+## System Architecture
 
-1. Student details are stored in `students`.
-2. A timetable record is created in `timetables`.
-3. Individual laboratory sessions are stored in `classes`.
-4. CampusHelp calculates free intervals for the selected date.
-5. A student creates a parcel pickup request.
-6. The system checks which students have sufficient free time.
-7. The pickup task is assigned to an eligible student.
-8. Assignment and task statuses are stored in MySQL.
+CampusHelp follows a layered architecture.
 
----
+1. **Presentation layer:** HTML, CSS, and JavaScript provide the web interface.
+2. **Application layer:** Flask processes HTTP requests, handles routes, manages sessions, and validates form submissions.
+3. **Business logic layer:** Python code manages timetable operations, availability calculations, and parcel task operations.
+4. **Data layer:** MySQL stores student details, timetables, laboratory sessions, tasks, requests, assignments, and availability records.
 
-## 7. Database Design
+### Architecture Overview
 
-CampusHelp uses a relational database named `CampusHelp` containing seven tables:
-
-- `students`
-- `timetables`
-- `classes`
-- `tasks`
-- `task_requests`
-- `assignments`
-- `availability`
-
-### Entity Relationship Diagram
-
-```mermaid
-erDiagram
-    STUDENTS ||--o{ TIMETABLES : has
-    TIMETABLES ||--o{ CLASSES : contains
-    STUDENTS ||--o{ TASKS : creates
-    TASKS ||--o| TASK_REQUESTS : has
-    STUDENTS ||--o{ TASK_REQUESTS : submits
-    TASKS ||--o| ASSIGNMENTS : has
-    STUDENTS ||--o{ ASSIGNMENTS : performs
-    STUDENTS ||--o{ AVAILABILITY : has
-
-    STUDENTS {
-        varchar reg_no PK
-        varchar name
-        varchar email UK
-        varchar password_hash
-        varchar department
-        int semester
-        varchar phone
-        timestamp created_at
-    }
-
-    TIMETABLES {
-        int timetable_id PK
-        varchar reg_no FK
-        varchar image_path
-        timestamp uploaded_at
-        enum status
-    }
-
-    CLASSES {
-        int class_id PK
-        int timetable_id FK
-        tinyint day_of_week
-        time start_time
-        time end_time
-        varchar subject
-    }
-
-    TASKS {
-        int task_id PK
-        varchar created_by FK
-        varchar title
-        text description
-        varchar location
-        date task_date
-        time start_time
-        time end_time
-        enum status
-        timestamp created_at
-    }
-
-    TASK_REQUESTS {
-        int request_id PK
-        int task_id FK
-        varchar reg_no FK
-        timestamp requested_at
-        enum status
-    }
-
-    ASSIGNMENTS {
-        int assignment_id PK
-        int task_id FK
-        varchar reg_no FK
-        timestamp assigned_at
-        timestamp completed_at
-        enum status
-    }
-
-    AVAILABILITY {
-        int availability_id PK
-        varchar reg_no FK
-        date available_date
-        time start_time
-        time end_time
-        boolean is_available
-        enum source
-    }
+```text
+Student
+   |
+   v
+Web Browser
+HTML + CSS + JavaScript
+   |
+   v
+Flask Application
+Routes + Authentication + Sessions
+   |
+   v
+Python Application Logic
+Timetable + Availability + Tasks
+   |
+   v
+MySQL Database
+Students + Classes + Tasks + Requests
 ```
 
-### Primary keys
+The Flask application currently contains database queries of its own. Integration with the existing availability and task-management modules should be verified before claiming that all operations pass through those modules.
 
-Primary keys uniquely identify records in their respective tables.
+## System Workflow
 
-| Table | Primary key |
+1. A student registers or logs in.
+2. Flask verifies the submitted credentials.
+3. The student accesses the dashboard.
+4. The student records laboratory sessions in the timetable.
+5. The availability logic can process the schedule to identify qualifying free intervals.
+6. A student creates a parcel pickup task.
+7. Other students can view open tasks and submit pickup requests.
+8. Task requests and assignments are stored in the database.
+9. Students can view their activities and update their profiles.
+
+## Scheduling and Availability Rules
+
+CampusHelp uses the following scheduling assumptions:
+
+| Rule | Description |
 |---|---|
-| `students` | `reg_no` |
-| `timetables` | `timetable_id` |
-| `classes` | `class_id` |
-| `tasks` | `task_id` |
-| `task_requests` | `request_id` |
-| `assignments` | `assignment_id` |
-| `availability` | `availability_id` |
+| Pickup window | 8:00 AM–1:00 PM |
+| Pickup duration | 15 continuous minutes |
+| Lab duration | 100 minutes, according to the project requirement |
+| Short gaps | Gaps of 10 minutes or less between consecutive labs are treated as busy |
+| Sunday | No scheduled classes under the project's assumptions |
 
-The `students.email` column also has a unique constraint. The `task_requests.task_id` and `assignments.task_id` columns are unique, allowing at most one request record and one assignment record per task.
+### Example
 
-### Foreign-key relationships
+Suppose a student has a laboratory session from 9:50 AM to 11:30 AM.
 
-| Child table | Foreign key | References |
-|---|---|---|
-| `timetables` | `reg_no` | `students.reg_no` |
-| `classes` | `timetable_id` | `timetables.timetable_id` |
-| `tasks` | `created_by` | `students.reg_no` |
-| `task_requests` | `task_id` | `tasks.task_id` |
-| `task_requests` | `reg_no` | `students.reg_no` |
-| `assignments` | `task_id` | `tasks.task_id` |
-| `assignments` | `reg_no` | `students.reg_no` |
-| `availability` | `reg_no` | `students.reg_no` |
-
-These relationships maintain referential integrity and prevent records from referring to nonexistent students, timetables, or tasks.
-
----
-
-## 8. Database Tables
-
-### 8.1 `students`
-
-Stores student registration and account information.
-
-| Column | Description |
+| Time interval | Classification |
 |---|---|
-| `reg_no` | Primary key and college registration number |
-| `name` | Student name |
-| `email` | Student email address; unique |
-| `password_hash` | Hashed password |
-| `department` | Academic department |
-| `semester` | Current semester |
-| `phone` | Contact number |
-| `created_at` | Account creation timestamp |
+| 8:00–9:50 AM | Free |
+| 9:50–11:30 AM | Laboratory session |
+| 11:30 AM–1:00 PM | Free |
 
-**Purpose:** Identifies students throughout the application. The registration number is used to associate students with their timetables, tasks, assignments, and availability records.
+Both free intervals are at least 15 minutes long, so the student has potential availability for a pickup on that day.
 
-### 8.2 `timetables`
+The calculation should consider all free intervals within the pickup window, rather than requiring the student to be free for the entire window.
 
-Stores timetable records belonging to students.
+## Database Design
 
-| Column | Description |
-|---|---|
-| `timetable_id` | Primary key |
-| `reg_no` | Student registration number; foreign key |
-| `image_path` | Optional path to a timetable image |
-| `uploaded_at` | Upload timestamp |
-| `status` | Timetable processing or verification status |
+The CampusHelp database uses MySQL to organize application data into related tables.
 
-**Purpose:** Connects a student with a timetable record. Individual laboratory sessions are stored separately in `classes`.
+### 1. Students
 
-### 8.3 `classes`
+Stores student account and profile information.
+
+Typical attributes:
+- `reg_no` — Primary key
+- `name`
+- `email`
+- `password_hash`
+- `department`
+- `semester`
+- `phone`
+- `created_at`
+
+### 2. Timetables
+
+Stores timetable records associated with students.
+
+Typical attributes:
+- `timetable_id` — Primary key
+- `reg_no` — Foreign key referencing students
+- `image_path`
+- `uploaded_at`
+- `status`
+
+### 3. Classes
 
 Stores individual laboratory sessions.
 
-| Column | Description |
-|---|---|
-| `class_id` | Primary key |
-| `timetable_id` | References `timetables.timetable_id` |
-| `day_of_week` | Day identifier from 1 to 7 |
-| `start_time` | Lab start time |
-| `end_time` | Lab end time |
-| `subject` | Lab or subject name |
-
-Day numbering:
-
-| Value | Day |
-|---:|---|
-| 1 | Sunday |
-| 2 | Monday |
-| 3 | Tuesday |
-| 4 | Wednesday |
-| 5 | Thursday |
-| 6 | Friday |
-| 7 | Saturday |
+Typical attributes:
+- `class_id` — Primary key
+- `timetable_id` — Foreign key referencing timetables
+- `day_of_week`
+- `start_time`
+- `end_time`
+- `subject`
 
-**Purpose:** Provides the schedule data used to determine when a student is busy and calculate free intervals.
+### 4. Tasks
 
-### 8.4 `tasks`
+Stores parcel pickup task details.
 
-Stores parcel pickup tasks.
+Typical attributes:
+- `task_id` — Primary key
+- `created_by` — Foreign key referencing students
+- `title`
+- `description`
+- `location`
+- `task_date`
+- `start_time`
+- `end_time`
+- `status`
+- `created_at`
 
-| Column | Description |
-|---|---|
-| `task_id` | Primary key |
-| `created_by` | Registration number of the requester |
-| `title` | Task title |
-| `description` | Pickup details |
-| `location` | Pickup location |
-| `task_date` | Requested pickup date |
-| `start_time` | Optional scheduled start time |
-| `end_time` | Optional scheduled end time |
-| `status` | Current task status |
-| `created_at` | Task creation timestamp |
+### 5. Task Requests
 
-Task statuses:
+Stores student requests associated with pickup tasks.
 
-- `open`
-- `assigned`
-- `in_progress`
-- `completed`
-- `cancelled`
+Typical attributes:
+- `request_id` — Primary key
+- `task_id` — Foreign key referencing tasks
+- `reg_no` — Foreign key referencing students
+- `requested_at`
+- `status`
 
-**Purpose:** Stores the main details of each pickup task and tracks its overall progress.
+### 6. Assignments
 
-### 8.5 `task_requests`
+Stores assignment information for pickup tasks.
 
-Stores requests associated with pickup tasks.
+Typical attributes:
+- `assignment_id` — Primary key
+- `task_id` — Foreign key referencing tasks
+- `reg_no` — Foreign key referencing students
+- `assigned_at`
+- `completed_at`
+- `status`
 
-| Column | Description |
-|---|---|
-| `request_id` | Primary key |
-| `task_id` | References `tasks.task_id`; unique |
-| `requested_at` | Request timestamp |
-| `status` | Request status |
-| `reg_no` | Student associated with the request |
+### 7. Availability
 
-Request statuses:
+Stores availability records associated with students, when used by the application.
 
-- `pending`
-- `accepted`
-- `declined`
-- `withdrawn`
+Typical attributes:
+- `availability_id` — Primary key
+- `reg_no` — Foreign key referencing students
+- `available_date`
+- `start_time`
+- `end_time`
+- `is_available`
+- `source`
 
-**Purpose:** Tracks the request associated with a task separately from the task itself.
+*The attributes above summarize the intended schema. Verify them against the actual `SHOW CREATE TABLE` output before treating this list as the exact database definition.*
 
-### 8.6 `assignments`
+## Database Normalization
 
-Stores student-task assignments.
+The database separates student, timetable, class, task, request, assignment, and availability information into distinct tables.
 
-| Column | Description |
-|---|---|
-| `assignment_id` | Primary key |
-| `task_id` | References `tasks.task_id`; unique |
-| `reg_no` | Registration number of the assigned student |
-| `assigned_at` | Assignment timestamp |
-| `completed_at` | Completion timestamp |
-| `status` | Assignment progress |
+### First Normal Form (1NF)
+Fields contain individual values, and repeated laboratory sessions are represented as separate records in the `classes` table.
 
-Assignment statuses:
+### Second Normal Form (2NF)
+The tables primarily use single-column primary keys, so partial dependency on only part of a composite primary key does not apply to those primary keys.
 
-- `assigned`
-- `in_progress`
-- `completed`
-- `cancelled`
+### Third Normal Form (3NF)
+Different entities are stored in separate tables, with foreign keys connecting related records. This reduces unnecessary duplication and improves consistency.
 
-**Purpose:** Records which student is responsible for performing a pickup and tracks the assignment's progress.
+Formal confirmation of 3NF requires checking candidate keys and functional dependencies for the actual schema.
 
-### 8.7 `availability`
+## User Interface
 
-Stores availability intervals associated with students.
+The Flask web application provides a browser-based interface with a consistent, campus-focused design using green accents, light backgrounds, rounded cards, and clearly labelled forms.
 
-| Column | Description |
-|---|---|
-| `availability_id` | Primary key |
-| `available_date` | Date of availability |
-| `start_time` | Interval start time |
-| `end_time` | Interval end time |
-| `is_available` | Availability flag |
-| `source` | `timetable` or `manual` |
-| `reg_no` | Student registration number; foreign key |
+### Landing Page
+Introduces CampusHelp and provides navigation to registration and login.
 
-**Purpose:** Provides a structure for storing availability intervals, whether derived from a timetable or entered manually. The current availability logic can also calculate intervals directly from `classes`.
+### Login and Registration
+Allows students to create accounts and sign in using their registration number or email address and password.
 
----
+### Dashboard
+Provides a personalized welcome, access to open pickup tasks, an overview of assignments, and navigation to the main features.
 
-## 9. Installation and Setup
+### Timetable Management
+Displays saved laboratory sessions and provides a form for entering a day, subject, start time, and end time.
 
-### Prerequisites
+### Parcel Tasks
+Allows students to post pickup requests, view open tasks, submit requests to help, and view their own tasks and requests.
 
-Install the following:
+### Student Profile
+Allows students to update their name, email, department, semester, and phone number.
 
-- Python 3
-- MySQL Server
-- Git
+### Frontend and Backend Integration
 
-### Step 1: Clone the repository
+The browser sends requests to Flask. Flask processes the submitted information and executes database queries through MySQL Connector/Python. The resulting data is used to render pages and display feedback to the student.
 
-```bash
-git clone https://github.com/vaii7x/CampusHelp.git
-cd CampusHelp
-```
+## Project Structure
 
-### Step 2: Create a virtual environment
-
-On Windows PowerShell:
-
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-```
-
-### Step 3: Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### Step 4: Create the database
-
-The repository includes [`schema.sql`](schema.sql), which creates the `CampusHelp` database and its seven tables.
-
-Run the script from the project directory using a MySQL command-line client:
-
-```bash
-mysql -u root -p < schema.sql
-```
-
-Enter your MySQL password when prompted.
-
-**Important:** This script creates an empty database structure. It does not import existing student records or timetable data. Run it against a fresh database; `CREATE TABLE IF NOT EXISTS` does not modify tables that already exist.
-
-### Step 5: Configure the database connection
-
-Open `database.py` and configure the local MySQL connection settings.
-
-Use your own MySQL username, password, host, and database name. Do not publish credentials in the repository.
-
-### Step 6: Start the application
-
-```bash
-python main.py
-```
-
----
-
-## 10. Running the Application
-
-The application provides a command-line menu for the supported operations.
-
-Depending on the current menu, users can:
-
-1. Register a student.
-2. Enter or update a timetable.
-3. Check student availability.
-4. Manage pickup tasks.
-5. View pickup requests and assignments.
-
-To check a student's availability, enter the college registration number and select the relevant operation.
-
-To view assigned tasks, enter the registration number of the student whose assignments you want to inspect.
-
----
-
-## 11. Example Scenario
-
-Suppose a student has a laboratory session from 9:50 AM to 11:30 AM on Monday.
-
-The pickup window is 8:00 AM–1:00 PM.
-
-The system calculates:
-
-| Interval | Duration | Pickup eligible? |
-|---|---:|---|
-| 8:00–9:50 AM | 110 minutes | Yes |
-| 9:50–11:30 AM | Lab session | No |
-| 11:30 AM–1:00 PM | 90 minutes | Yes |
-
-Both free intervals can accommodate a 15-minute pickup.
-
-If a student has only a 10-minute gap between consecutive labs, that gap is treated as unavailable.
-
----
-
-## 12. Future Enhancements
-
-- Automatically extract laboratory sessions from timetable images.
-- Add a graphical web interface.
-- Implement role-based authentication.
-- Support student acceptance and rejection of assignments.
-- Add pickup completion verification.
-- Prevent overlapping pickup commitments.
-- Add automated unit and integration tests.
-- Generate reports for pickup requests and task completion.
-- Improve availability management and synchronization.
-
----
-
-## 13. Project Structure
+The project contains the original Python backend and the Flask web interface.
 
 ```text
 CampusHelp/
+├── app.py
 ├── main.py
 ├── database.py
 ├── timetable.py
 ├── availability.py
 ├── tasks.py
-├── requirements.txt
+├── templates/
+│   └── page.html
+├── static/
+│   ├── style.css
+│   └── app.js
 ├── schema.sql
-├── README.md
-└── .gitignore
+├── requirements.txt
+├── .env.example
+├── .gitignore
+└── README.md
 ```
 
-The Python modules handle application logic, while `schema.sql` defines the database structure.
+The files `templates/page.html` and `static/` contain the web interface. `app.py` contains Flask routes. The existing Python modules contain the original CLI and application logic.
 
----
+The `schema.sql` file is included if it exists in the repository. Database scripts should be checked against the current schema before being executed.
 
-## 14. Author
+## Installation and Setup
 
-**Vaishnav Vinod**
+### Prerequisites
 
-GitHub: [@vaii7x](https://github.com/vaii7x)
+- Python installed on Windows.
+- MySQL Server running.
+- Visual Studio Code.
+- Git, if cloning the repository.
 
-Repository: [CampusHelp](https://github.com/vaii7x/CampusHelp)
+### 1. Clone the repository
 
----
+```powershell
+git clone https://github.com/vaii7x/CampusHelp.git
+cd CampusHelp
+```
 
-*CampusHelp — Making campus parcel pickups easier through student availability and coordination.*
+If the repository is already on your computer, open the existing folder instead.
+
+### 2. Create and activate a virtual environment
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+### 3. Install dependencies
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+If the dependency list is incomplete, install the required packages:
+
+```powershell
+python -m pip install Flask mysql-connector-python python-dotenv
+```
+
+### 4. Configure environment variables
+
+Create a local `.env` file in the same directory as `app.py`, using `.env.example` as a template.
+
+Example:
+
+```dotenv
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_NAME=CampusHelp
+FLASK_SECRET_KEY=your_generated_secret_key
+```
+
+Replace the example values with your own local settings. If your MySQL account uses no password, leave `DB_PASSWORD=` empty.
+
+**Never commit `.env` or real credentials to GitHub.**
+
+### 5. Prepare the database
+
+Make sure the `CampusHelp` database and required tables exist. If using `schema.sql` to create a fresh database, review the script first. Do not rerun a schema script against an existing database without understanding its effects.
+
+### 6. Run the application
+
+```powershell
+python app.py
+```
+
+Open the following address in a browser:
+
+```text
+http://127.0.0.1:5000
+```
+
+## Testing
+
+The following test cases can be used to evaluate the application.
+
+| Test case | Expected result |
+|---|---|
+| Register a new student | Student record is created |
+| Sign in with valid credentials | Dashboard is displayed |
+| Sign in with invalid credentials | Login is rejected |
+| Add a laboratory session | Session appears in the timetable |
+| Create a pickup task | Task appears in the task list |
+| Submit a pickup request | Request is recorded |
+| Update profile information | Updated information is displayed |
+| Access a protected page while logged out | Student is redirected to login |
+| Calculate availability around a lab | Free intervals follow the scheduling rules |
+
+Record actual outcomes as Pass, Fail, or Not Tested. Only mark cases as passed after testing them.
+
+## Limitations
+
+- Availability depends on the correctness of the laboratory schedule entered by students.
+- The current interface and original CLI backend may require further integration.
+- The website's current routes do not necessarily use every existing backend function.
+- Automated timetable-image extraction should not be considered implemented unless it has been developed and tested.
+- Additional security hardening is needed before public deployment.
+
+## Future Enhancements
+
+- Automated timetable extraction using OCR.
+- Notifications for new requests and assignment updates.
+- Improved matching of students to pickup tasks based on schedule and location.
+- Administrative tools for monitoring tasks.
+- Enhanced mobile usability.
+- Password reset and account recovery.
+- Audit logging and stronger access controls.
+- Integration of the Flask interface with the existing availability and assignment logic.
+
+## Conclusion
+
+CampusHelp provides a structured approach to parcel pickup coordination within a university campus. By combining Python, Flask, HTML, CSS, JavaScript, and MySQL, the project brings student information, laboratory schedules, and parcel task management into a single application.
+
+The system demonstrates the use of relational database design, web development, authentication, and scheduling logic in a practical campus scenario. Further integration, testing, and security improvements can strengthen the application and prepare it for broader use.
+
+## Repository
+
+Source code and documentation: https://github.com/vaii7x/CampusHelp
